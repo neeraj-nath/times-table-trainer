@@ -21,7 +21,7 @@
     --border: #2a3f55;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: content-box; margin: 0; padding: 0; }
 
   body {
     background: var(--bg);
@@ -84,6 +84,12 @@
     gap: 10px;
   }
 
+  .setup-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
   input[type="number"] {
     flex: 1;
     background: var(--bg);
@@ -96,6 +102,7 @@
     padding: 12px 16px;
     outline: none;
     transition: border-color 0.2s;
+    width: 10rem;
   }
 
   input[type="number"]:focus { border-color: var(--accent); }
@@ -317,6 +324,17 @@
     flex-wrap: wrap;
   }
 
+  @media (max-width: 520px) {
+    .setup-fields {
+      grid-template-columns: 1fr;
+    }
+
+    .input-row,
+    .answer-row {
+      flex-direction: column;
+    }
+  }
+
   /* ── FINISH BANNER ── */
   #finish-banner {
     display: none;
@@ -392,12 +410,20 @@
 
   <!-- SETUP -->
   <div class="card" id="setup-screen">
-    <label>Which table do you want to practice?</label>
-    <div class="input-row">
-      <input type="number" id="table-input" placeholder="e.g. 22" min="1" max="999">
+    <div class="setup-fields">
+      <div>
+        <label for="table-input">Which table do you want to practice?</label>
+        <input type="number" id="table-input" placeholder="e.g. 22" min="1" max="999">
+      </div>
+      <div>
+        <label for="multiplier-input">Practice up to which multiplier?</label>
+        <input type="number" id="multiplier-input" placeholder="e.g. 20" min="1" max="100" value="20">
+      </div>
+    </div>
+    <div class="input-row" style="margin-top:12px;">
       <button class="btn btn-primary" id="start-btn" onclick="startQuiz()">Start →</button>
     </div>
-    <p id="setup-error" style="color:var(--red);font-size:0.82rem;margin-top:8px;display:none;">Please enter a valid number.</p>
+    <p id="setup-error" style="color:var(--red);font-size:0.82rem;margin-top:8px;display:none;">Please enter valid numbers. Table can be 1 to 999, multiplier can be 1 to 100.</p>
   </div>
 
   <!-- QUIZ -->
@@ -461,7 +487,8 @@
 <script>
 // ── STATE ──
 let tableNum = 0;
-let questions = [];         // shuffled multipliers 1–10
+let maxMultiplier = 20;
+let questions = [];         // shuffled multipliers
 let currentIdx = 0;
 let correct = 0, wrong = 0;
 let timerInterval = null;
@@ -475,6 +502,9 @@ let answered = false;
 document.getElementById('table-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') startQuiz();
 });
+document.getElementById('multiplier-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startQuiz();
+});
 document.getElementById('answer-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     if (!answered) submitAnswer();
@@ -483,17 +513,18 @@ document.getElementById('answer-input').addEventListener('keydown', e => {
 });
 
 function startQuiz() {
-  const val = parseInt(document.getElementById('table-input').value);
-  if (!val || val < 1) {
+  const val = parseInt(document.getElementById('table-input').value, 10);
+  const multiplierVal = parseInt(document.getElementById('multiplier-input').value, 10);
+  if (!val || val < 1 || val > 999 || !multiplierVal || multiplierVal < 1 || multiplierVal > 100) {
     document.getElementById('setup-error').style.display = 'block';
     return;
   }
   document.getElementById('setup-error').style.display = 'none';
   tableNum = val;
+  maxMultiplier = multiplierVal;
 
-  // Shuffle 1–10
-  // questions = Array.from({length: 10}, (_, i) => i + 1);
-  questions = Array.from({length: 20}, (_, i) => i + 1);
+  // Shuffle selected multiplier range
+  questions = Array.from({length: maxMultiplier}, (_, i) => i + 1);
   for (let i = questions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [questions[i], questions[j]] = [questions[j], questions[i]];
@@ -502,7 +533,7 @@ function startQuiz() {
   currentIdx = 0;
   correct = 0;
   wrong = 0;
-  currentSession = { table: tableNum, rows: [], date: new Date() };
+  currentSession = { table: tableNum, maxMultiplier, rows: [], date: new Date() };
 
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('quiz-screen').style.display = 'block';
@@ -518,9 +549,9 @@ function loadQuestion() {
   document.getElementById('question-text').innerHTML =
     `<span>${tableNum}</span> × ${multiplier} = ?`;
   document.getElementById('q-counter').textContent =
-    `Question ${currentIdx + 1} / 20`;
+    `Question ${currentIdx + 1} / ${questions.length}`;
   document.getElementById('progress-fill').style.width =
-    `${(currentIdx / 20) * 100}%`;
+    `${(currentIdx / questions.length) * 100}%`;
   // document.getElementById('q-counter').textContent =
   //   `Question ${currentIdx + 1} / 10`;
   // document.getElementById('progress-fill').style.width =
@@ -604,7 +635,7 @@ function submitAnswer() {
   const nextBtn = document.getElementById('next-btn');
   nextBtn.style.visibility = 'visible';
   // nextBtn.textContent = currentIdx < 9 ? 'Next →' : 'Finish ✓';
-  nextBtn.textContent = currentIdx < 19 ? 'Next →' : 'Finish ✓';
+  nextBtn.textContent = currentIdx < questions.length - 1 ? 'Next →' : 'Finish ✓';
 }
 
 // function nextQuestion() {
@@ -619,7 +650,7 @@ function submitAnswer() {
 function nextQuestion() {
   if (!answered) return;
   currentIdx++;
-  if (currentIdx < 20) {
+  if (currentIdx < questions.length) {
     loadQuestion();
   } else {
     finishSession();
@@ -643,14 +674,14 @@ function finishSession() {
   // document.getElementById('finish-emoji').textContent =
   //   correct === 10 ? '🏆' : correct >= 7 ? '🎉' : correct >= 5 ? '😊' : '💪';
   document.getElementById('finish-emoji').textContent =
-    correct === 20 ? '🏆' : correct >= 7 ? '🎉' : correct >= 5 ? '😊' : '💪';
+    correct === questions.length ? '🏆' : correct >= Math.ceil(questions.length * 0.85) ? '🎉' : correct >= Math.ceil(questions.length * 0.5) ? '😊' : '💪';
   // document.getElementById('finish-sub').textContent =
   //   correct === 10 ? 'Perfect score! Incredible!' :
   //   correct >= 7 ? 'Great job! Keep it up!' :
   //   'Keep practising — you\'ll get there!';
   document.getElementById('finish-sub').textContent =
-    correct === 20 ? 'Perfect score! Incredible!' :
-    correct >= 17 ? 'Great job! Keep it up!' :
+    correct === questions.length ? 'Perfect score! Incredible!' :
+    correct >= Math.ceil(questions.length * 0.85) ? 'Great job! Keep it up!' :
     'Keep practising — you\'ll get there!';
   document.getElementById('progress-fill').style.width = '100%';
 
@@ -666,6 +697,7 @@ function finishSession() {
 function restartSameTable() {
   document.getElementById('finish-banner').style.display = 'none';
   document.getElementById('table-input').value = tableNum;
+  document.getElementById('multiplier-input').value = maxMultiplier;
   startQuiz();
 }
 
@@ -687,11 +719,11 @@ function renderHistory() {
     const block = document.createElement('div');
     block.className = 'session-block';
     // const pct = Math.round((sess.correct / 10) * 100);
-    const pct = Math.round((sess.correct / 20) * 100);
+    const pct = Math.round((sess.correct / sess.rows.length) * 100);
     block.innerHTML = `
       <div class="session-header" onclick="toggleSession(${si}, this)">
         <div>
-          <div class="session-title">Table of ${sess.table} &nbsp;·&nbsp; ${pct}%</div>
+          <div class="session-title">Table of ${sess.table} up to ${sess.maxMultiplier} &nbsp;·&nbsp; ${pct}%</div>
           <div class="session-stats">${dateStr} &nbsp;·&nbsp; ${sess.totalTime.toFixed(1)}s total</div>
         </div>
         <span class="chevron">▼</span>
@@ -763,7 +795,7 @@ function downloadPDF() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.setTextColor(79, 195, 247);
-    doc.text(`Session ${si + 1} — Table of ${sess.table}`, margin + 1, y + 4);
+    doc.text(`Session ${si + 1} — Table of ${sess.table} up to ${sess.maxMultiplier}`, margin + 1, y + 4);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(123, 143, 166);
