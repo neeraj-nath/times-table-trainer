@@ -63,7 +63,7 @@
 
   .tab-bar {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -104,7 +104,8 @@
 
   /* ── SETUP ── */
   #setup-screen label,
-  #squares-setup-screen label {
+  #squares-setup-screen label,
+  #cubes-setup-screen label {
     display: block;
     font-weight: 700;
     font-size: 0.85rem;
@@ -185,7 +186,8 @@
 
   /* ── QUESTION SCREEN ── */
   #quiz-screen,
-  #squares-quiz-screen { display: none; }
+  #squares-quiz-screen,
+  #cubes-quiz-screen { display: none; }
 
   .progress-bar-wrap {
     background: var(--bg);
@@ -251,7 +253,8 @@
   }
 
   #answer-input,
-  #square-answer-input {
+  #square-answer-input,
+  #cube-answer-input {
     flex: 1;
     font-size: 1.4rem;
     text-align: center;
@@ -285,7 +288,8 @@
 
   /* ── HISTORY ── */
   #history-section .section-title,
-  #squares-history-section .section-title {
+  #squares-history-section .section-title,
+  #cubes-history-section .section-title {
     font-family: 'Fredoka One', cursive;
     font-size: 1.1rem;
     color: var(--accent);
@@ -375,7 +379,8 @@
 
   /* ── FINISH BANNER ── */
   #finish-banner,
-  #squares-finish-banner {
+  #squares-finish-banner,
+  #cubes-finish-banner {
     display: none;
     text-align: center;
     padding: 30px 24px;
@@ -450,6 +455,7 @@
   <div class="tab-bar" role="tablist" aria-label="Practice type">
     <button class="tab-btn active" id="multiplication-tab-btn" type="button" role="tab" aria-selected="true" onclick="switchTab('multiplication')">Multiplication</button>
     <button class="tab-btn" id="squares-tab-btn" type="button" role="tab" aria-selected="false" onclick="switchTab('squares')">Squares</button>
+    <button class="tab-btn" id="cubes-tab-btn" type="button" role="tab" aria-selected="false" onclick="switchTab('cubes')">Cubes</button>
   </div>
 
   <div class="tab-panel active" id="multiplication-tab" role="tabpanel" aria-labelledby="multiplication-tab-btn">
@@ -606,6 +612,82 @@
 
   </div>
 
+  <div class="tab-panel" id="cubes-tab" role="tabpanel" aria-labelledby="cubes-tab-btn">
+
+  <!-- CUBES SETUP -->
+  <div class="card" id="cubes-setup-screen">
+    <div class="setup-fields">
+      <div>
+        <label for="cube-min-input">Start from which number?</label>
+        <input type="number" id="cube-min-input" placeholder="e.g. 5" min="1" max="999" value="1">
+      </div>
+      <div>
+        <label for="cube-max-input">Quiz cubes up to which number?</label>
+        <input type="number" id="cube-max-input" placeholder="e.g. 20" min="1" max="999" value="20">
+      </div>
+    </div>
+    <div class="input-row" style="margin-top:12px;">
+      <button class="btn btn-primary" id="cube-start-btn" onclick="startCubesQuiz()">Start →</button>
+    </div>
+    <p id="cubes-setup-error" style="color:var(--red);font-size:0.82rem;margin-top:8px;display:none;">Please enter a valid range from 1 to 999. The lower limit must be less than or equal to the upper limit.</p>
+  </div>
+
+  <!-- CUBES QUIZ -->
+  <div class="card" id="cubes-quiz-screen">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="cubes-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="meta-row">
+      <span id="cubes-q-counter">Question 1 / 20</span>
+      <span class="badge" id="cubes-score-badge">✓ 0 &nbsp;✗ 0</span>
+    </div>
+    <div class="question-display">
+      <div class="question-text" id="cubes-question-text">__³ = ?</div>
+      <div class="timer-display" id="cubes-timer-display">00:00</div>
+    </div>
+    <div class="answer-row">
+      <input type="number" id="cube-answer-input" placeholder="Your answer…" autocomplete="off">
+      <button class="btn btn-primary" id="cube-submit-btn" onclick="submitCubeAnswer()">Check</button>
+    </div>
+    <div class="feedback-box" id="cubes-feedback-box">
+      <span class="feedback-icon" id="cubes-feedback-icon"></span>
+      <span id="cubes-feedback-text"></span>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+      <button class="btn btn-ghost" style="font-size:0.82rem;padding:8px 14px;" onclick="stopCubesQuiz()">Stop</button>
+      <button class="btn btn-ghost" style="font-size:0.82rem;padding:8px 14px;visibility:hidden;" onclick="nextCubeQuestion()" id="cube-next-btn">Next →</button>
+    </div>
+  </div>
+
+  <!-- CUBES FINISH -->
+  <div class="card" id="cubes-finish-banner">
+    <div class="finish-emoji" id="cubes-finish-emoji">🎉</div>
+    <div class="finish-title">Cubes Session Complete!</div>
+    <div class="finish-sub" id="cubes-finish-sub">Here's how you did:</div>
+    <div class="stats-grid">
+      <div class="stat-tile"><div class="stat-val" id="cubes-stat-correct">0</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat-tile"><div class="stat-val" id="cubes-stat-wrong">0</div><div class="stat-lbl">Wrong</div></div>
+      <div class="stat-tile"><div class="stat-val" id="cubes-stat-time">0s</div><div class="stat-lbl">Total Time</div></div>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="restartSameCubes()">Retry Cubes</button>
+      <button class="btn btn-ghost" onclick="backToCubesSetup()">New Range</button>
+    </div>
+  </div>
+
+  <!-- CUBES HISTORY -->
+  <div id="cubes-history-section">
+    <div class="section-title">
+      <span>📋 Cubes History</span>
+      <button class="btn btn-ghost" style="font-size:0.8rem;padding:7px 14px;" onclick="clearCubesHistory()">Clear</button>
+    </div>
+    <div id="cubes-history-list">
+      <div class="empty-state">No cube sessions yet. Start practising!</div>
+    </div>
+  </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -633,17 +715,28 @@ let squareHistory = [];
 let currentSquareSession = null;
 let squareAnswered = false;
 
+let cubeMin = 1;
+let cubeMax = 20;
+let cubeQuestions = [];
+let cubeCurrentIdx = 0;
+let cubeCorrect = 0, cubeWrong = 0;
+let cubeTimerInterval = null;
+let cubeQuestionStartTime = 0;
+let cubeHistory = [];
+let currentCubeSession = null;
+let cubeAnswered = false;
+
 function switchTab(tabName) {
-  const isSquares = tabName === 'squares';
-  document.getElementById('multiplication-tab').classList.toggle('active', !isSquares);
-  document.getElementById('squares-tab').classList.toggle('active', isSquares);
-  document.getElementById('multiplication-tab-btn').classList.toggle('active', !isSquares);
-  document.getElementById('squares-tab-btn').classList.toggle('active', isSquares);
-  document.getElementById('multiplication-tab-btn').setAttribute('aria-selected', String(!isSquares));
-  document.getElementById('squares-tab-btn').setAttribute('aria-selected', String(isSquares));
+  ['multiplication', 'squares', 'cubes'].forEach(tab => {
+    const isActive = tabName === tab;
+    document.getElementById(`${tab}-tab`).classList.toggle('active', isActive);
+    document.getElementById(`${tab}-tab-btn`).classList.toggle('active', isActive);
+    document.getElementById(`${tab}-tab-btn`).setAttribute('aria-selected', String(isActive));
+  });
 
   setTimeout(() => {
-    const focusEl = document.getElementById(isSquares ? 'square-min-input' : 'table-input');
+    const focusId = tabName === 'squares' ? 'square-min-input' : tabName === 'cubes' ? 'cube-min-input' : 'table-input';
+    const focusEl = document.getElementById(focusId);
     if (focusEl) focusEl.focus();
   }, 0);
 }
@@ -671,6 +764,18 @@ document.getElementById('square-answer-input').addEventListener('keydown', e => 
   if (e.key === 'Enter') {
     if (!squareAnswered) submitSquareAnswer();
     else nextSquareQuestion();
+  }
+});
+document.getElementById('cube-min-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startCubesQuiz();
+});
+document.getElementById('cube-max-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startCubesQuiz();
+});
+document.getElementById('cube-answer-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (!cubeAnswered) submitCubeAnswer();
+    else nextCubeQuestion();
   }
 });
 
@@ -1098,6 +1203,239 @@ function clearSquaresHistory() {
   if (confirm('Clear all squares session history?')) {
     squareHistory = [];
     renderSquaresHistory();
+  }
+}
+
+// ── CUBES QUIZ ──
+function startCubesQuiz() {
+  const minVal = parseInt(document.getElementById('cube-min-input').value, 10);
+  const maxVal = parseInt(document.getElementById('cube-max-input').value, 10);
+  if (!minVal || !maxVal || minVal < 1 || maxVal < 1 || minVal > 999 || maxVal > 999 || minVal > maxVal) {
+    document.getElementById('cubes-setup-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('cubes-setup-error').style.display = 'none';
+  cubeMin = minVal;
+  cubeMax = maxVal;
+
+  cubeQuestions = Array.from({length: cubeMax - cubeMin + 1}, (_, i) => cubeMin + i);
+  for (let i = cubeQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cubeQuestions[i], cubeQuestions[j]] = [cubeQuestions[j], cubeQuestions[i]];
+  }
+
+  cubeCurrentIdx = 0;
+  cubeCorrect = 0;
+  cubeWrong = 0;
+  currentCubeSession = { min: cubeMin, max: cubeMax, rows: [], date: new Date(), stoppedEarly: false };
+
+  document.getElementById('cubes-setup-screen').style.display = 'none';
+  document.getElementById('cubes-quiz-screen').style.display = 'block';
+  document.getElementById('cubes-finish-banner').style.display = 'none';
+
+  loadCubeQuestion();
+}
+
+function loadCubeQuestion() {
+  cubeAnswered = false;
+  const n = cubeQuestions[cubeCurrentIdx];
+  document.getElementById('cubes-question-text').innerHTML = `<span>${n}</span>³ = ?`;
+  document.getElementById('cubes-q-counter').textContent =
+    `Question ${cubeCurrentIdx + 1} / ${cubeQuestions.length}`;
+  document.getElementById('cubes-progress-fill').style.width =
+    `${(cubeCurrentIdx / cubeQuestions.length) * 100}%`;
+  document.getElementById('cubes-score-badge').textContent =
+    `✓ ${cubeCorrect}  ✗ ${cubeWrong}`;
+  document.getElementById('cube-answer-input').value = '';
+  document.getElementById('cube-answer-input').disabled = false;
+  document.getElementById('cube-submit-btn').disabled = false;
+  document.getElementById('cube-answer-input').focus();
+
+  const fb = document.getElementById('cubes-feedback-box');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('cube-next-btn').style.visibility = 'hidden';
+
+  clearInterval(cubeTimerInterval);
+  cubeQuestionStartTime = Date.now();
+  updateCubeTimerDisplay(0);
+  cubeTimerInterval = setInterval(() => {
+    updateCubeTimerDisplay((Date.now() - cubeQuestionStartTime) / 1000);
+  }, 100);
+
+  const questionEl = document.getElementById('cubes-question-text');
+  questionEl.classList.remove('pop');
+  void questionEl.offsetWidth;
+  questionEl.classList.add('pop');
+}
+
+function updateCubeTimerDisplay(secs) {
+  const mins = Math.floor(secs / 60);
+  const s = secs % 60;
+  const str = `${String(mins).padStart(2,'0')}:${s.toFixed(1).padStart(4,'0')}`;
+  const el = document.getElementById('cubes-timer-display');
+  el.textContent = str;
+  el.className = 'timer-display' + (secs > 30 ? ' warning' : '');
+}
+
+function submitCubeAnswer() {
+  if (cubeAnswered) return;
+  clearInterval(cubeTimerInterval);
+  cubeAnswered = true;
+
+  const raw = document.getElementById('cube-answer-input').value.trim();
+  const userAns = parseInt(raw);
+  const n = cubeQuestions[cubeCurrentIdx];
+  const correctAns = n * n * n;
+  const elapsed = (Date.now() - cubeQuestionStartTime) / 1000;
+  const isCorrect = userAns === correctAns;
+
+  if (isCorrect) cubeCorrect++; else cubeWrong++;
+
+  currentCubeSession.rows.push({
+    q: `${n}³`,
+    userAns: isNaN(userAns) ? '(blank)' : userAns,
+    correct: correctAns,
+    isCorrect,
+    time: elapsed
+  });
+
+  const fb = document.getElementById('cubes-feedback-box');
+  fb.style.display = 'flex';
+  if (isCorrect) {
+    fb.className = 'feedback-box correct pop';
+    document.getElementById('cubes-feedback-icon').textContent = '✓';
+    document.getElementById('cubes-feedback-text').textContent = `Correct! ${n}³ = ${correctAns}`;
+  } else {
+    fb.className = 'feedback-box wrong pop';
+    document.getElementById('cubes-feedback-icon').textContent = '✗';
+    document.getElementById('cubes-feedback-text').textContent =
+      `Not quite. ${n}³ = ${correctAns} (you said ${isNaN(userAns) ? '(nothing)' : userAns})`;
+  }
+
+  document.getElementById('cubes-score-badge').textContent = `✓ ${cubeCorrect}  ✗ ${cubeWrong}`;
+  document.getElementById('cube-answer-input').disabled = true;
+  document.getElementById('cube-submit-btn').disabled = true;
+
+  const nextBtn = document.getElementById('cube-next-btn');
+  nextBtn.style.visibility = 'visible';
+  nextBtn.textContent = cubeCurrentIdx < cubeQuestions.length - 1 ? 'Next →' : 'Finish ✓';
+}
+
+function nextCubeQuestion() {
+  if (!cubeAnswered) return;
+  cubeCurrentIdx++;
+  if (cubeCurrentIdx < cubeQuestions.length) {
+    loadCubeQuestion();
+  } else {
+    finishCubesSession(false);
+  }
+}
+
+function stopCubesQuiz() {
+  if (!currentCubeSession) return;
+  finishCubesSession(true);
+}
+
+function finishCubesSession(stoppedEarly) {
+  clearInterval(cubeTimerInterval);
+  document.getElementById('cubes-quiz-screen').style.display = 'none';
+  currentCubeSession.stoppedEarly = stoppedEarly;
+
+  const totalTime = currentCubeSession.rows.reduce((s, r) => s + r.time, 0);
+  currentCubeSession.totalTime = totalTime;
+  currentCubeSession.correct = cubeCorrect;
+  currentCubeSession.wrong = cubeWrong;
+  currentCubeSession.asked = currentCubeSession.rows.length;
+  cubeHistory.unshift(currentCubeSession);
+
+  document.getElementById('cubes-stat-correct').textContent = cubeCorrect;
+  document.getElementById('cubes-stat-wrong').textContent = cubeWrong;
+  document.getElementById('cubes-stat-time').textContent = totalTime.toFixed(1) + 's';
+  document.getElementById('cubes-finish-emoji').textContent =
+    cubeCorrect === currentCubeSession.asked && currentCubeSession.asked > 0 ? '🏆' :
+    cubeCorrect >= Math.ceil(Math.max(currentCubeSession.asked, 1) * 0.85) ? '🎉' :
+    cubeCorrect >= Math.ceil(Math.max(currentCubeSession.asked, 1) * 0.5) ? '😊' : '💪';
+  const rangeLabel = cubeMin === cubeMax ? `${cubeMax}` : `${cubeMin} to ${cubeMax}`;
+  document.getElementById('cubes-finish-sub').textContent =
+    stoppedEarly ? `Stopped after ${currentCubeSession.asked} of ${cubeQuestions.length} questions from ${rangeLabel}.` :
+    cubeCorrect === cubeQuestions.length ? 'Perfect score! Incredible!' :
+    cubeCorrect >= Math.ceil(cubeQuestions.length * 0.85) ? 'Great job! Keep it up!' :
+    'Keep practising — you\'ll get there!';
+  document.getElementById('cubes-progress-fill').style.width = '100%';
+
+  const banner = document.getElementById('cubes-finish-banner');
+  banner.style.display = 'block';
+  banner.classList.remove('pop');
+  void banner.offsetWidth;
+  banner.classList.add('pop');
+
+  renderCubesHistory();
+}
+
+function restartSameCubes() {
+  document.getElementById('cubes-finish-banner').style.display = 'none';
+  document.getElementById('cube-min-input').value = cubeMin;
+  document.getElementById('cube-max-input').value = cubeMax;
+  startCubesQuiz();
+}
+
+function backToCubesSetup() {
+  document.getElementById('cubes-finish-banner').style.display = 'none';
+  document.getElementById('cubes-setup-screen').style.display = 'block';
+}
+
+function renderCubesHistory() {
+  const container = document.getElementById('cubes-history-list');
+  if (cubeHistory.length === 0) {
+    container.innerHTML = '<div class="empty-state">No cube sessions yet. Start practising!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  cubeHistory.forEach((sess, si) => {
+    const dateStr = sess.date.toLocaleString();
+    const block = document.createElement('div');
+    block.className = 'session-block';
+    const pct = sess.rows.length ? Math.round((sess.correct / sess.rows.length) * 100) : 0;
+    const range = sess.min === sess.max ? `${sess.max}` : `${sess.min} to ${sess.max}`;
+    const totalInRange = sess.max - sess.min + 1;
+    const status = sess.stoppedEarly ? `Stopped at ${sess.asked}/${totalInRange} from ${range}` : range;
+    block.innerHTML = `
+      <div class="session-header" onclick="toggleCubeSession(${si}, this)">
+        <div>
+          <div class="session-title">Cubes ${status} &nbsp;·&nbsp; ${pct}%</div>
+          <div class="session-stats">${dateStr} &nbsp;·&nbsp; ${sess.totalTime.toFixed(1)}s total</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="session-rows" id="cube-sess-rows-${si}">
+        ${sess.rows.map(r => `
+          <div class="hist-row">
+            <span class="hist-q">${r.q}</span>
+            <span class="hist-answer ${r.isCorrect ? 'hist-correct' : 'hist-wrong'}">
+              ${r.isCorrect ? '✓' : '✗'} ${r.userAns}
+              ${!r.isCorrect ? `<span style="color:var(--muted);font-size:0.8rem"> → ${r.correct}</span>` : ''}
+            </span>
+            <span class="hist-time">${r.time.toFixed(1)}s</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(block);
+  });
+}
+
+function toggleCubeSession(idx, headerEl) {
+  const rows = document.getElementById(`cube-sess-rows-${idx}`);
+  rows.classList.toggle('open');
+  headerEl.classList.toggle('open');
+}
+
+function clearCubesHistory() {
+  if (!cubeHistory.length) return;
+  if (confirm('Clear all cubes session history?')) {
+    cubeHistory = [];
+    renderCubesHistory();
   }
 }
 
