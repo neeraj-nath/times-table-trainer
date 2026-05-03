@@ -61,6 +61,40 @@
     gap: 16px;
   }
 
+  .tab-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .tab-btn.active {
+    background: var(--accent);
+    color: #1a1200;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
   .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -69,7 +103,8 @@
   }
 
   /* ── SETUP ── */
-  #setup-screen label {
+  #setup-screen label,
+  #squares-setup-screen label {
     display: block;
     font-weight: 700;
     font-size: 0.85rem;
@@ -149,7 +184,8 @@
   .btn-ghost:hover { border-color: var(--text); color: var(--text); }
 
   /* ── QUESTION SCREEN ── */
-  #quiz-screen { display: none; }
+  #quiz-screen,
+  #squares-quiz-screen { display: none; }
 
   .progress-bar-wrap {
     background: var(--bg);
@@ -214,7 +250,8 @@
     margin-top: 20px;
   }
 
-  #answer-input {
+  #answer-input,
+  #square-answer-input {
     flex: 1;
     font-size: 1.4rem;
     text-align: center;
@@ -247,7 +284,8 @@
   .feedback-icon { font-size: 1.3rem; }
 
   /* ── HISTORY ── */
-  #history-section .section-title {
+  #history-section .section-title,
+  #squares-history-section .section-title {
     font-family: 'Fredoka One', cursive;
     font-size: 1.1rem;
     color: var(--accent);
@@ -336,7 +374,8 @@
   }
 
   /* ── FINISH BANNER ── */
-  #finish-banner {
+  #finish-banner,
+  #squares-finish-banner {
     display: none;
     text-align: center;
     padding: 30px 24px;
@@ -407,6 +446,13 @@
 <p class="subtitle">Master multiplication, one question at a time</p>
 
 <div class="app-container">
+
+  <div class="tab-bar" role="tablist" aria-label="Practice type">
+    <button class="tab-btn active" id="multiplication-tab-btn" type="button" role="tab" aria-selected="true" onclick="switchTab('multiplication')">Multiplication</button>
+    <button class="tab-btn" id="squares-tab-btn" type="button" role="tab" aria-selected="false" onclick="switchTab('squares')">Squares</button>
+  </div>
+
+  <div class="tab-panel active" id="multiplication-tab" role="tabpanel" aria-labelledby="multiplication-tab-btn">
 
   <!-- SETUP -->
   <div class="card" id="setup-screen">
@@ -482,6 +528,84 @@
     </div>
   </div>
 
+  </div>
+
+  <div class="tab-panel" id="squares-tab" role="tabpanel" aria-labelledby="squares-tab-btn">
+
+  <!-- SQUARES SETUP -->
+  <div class="card" id="squares-setup-screen">
+    <div class="setup-fields">
+      <div>
+        <label for="square-min-input">Start from which number?</label>
+        <input type="number" id="square-min-input" placeholder="e.g. 11" min="1" max="999" value="1">
+      </div>
+      <div>
+        <label for="square-max-input">Quiz squares up to which number?</label>
+        <input type="number" id="square-max-input" placeholder="e.g. 20" min="1" max="999" value="20">
+      </div>
+    </div>
+    <div class="input-row" style="margin-top:12px;">
+      <button class="btn btn-primary" id="square-start-btn" onclick="startSquaresQuiz()">Start →</button>
+    </div>
+    <p id="squares-setup-error" style="color:var(--red);font-size:0.82rem;margin-top:8px;display:none;">Please enter a valid range from 1 to 999. The lower limit must be less than or equal to the upper limit.</p>
+  </div>
+
+  <!-- SQUARES QUIZ -->
+  <div class="card" id="squares-quiz-screen">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="squares-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="meta-row">
+      <span id="squares-q-counter">Question 1 / 20</span>
+      <span class="badge" id="squares-score-badge">✓ 0 &nbsp;✗ 0</span>
+    </div>
+    <div class="question-display">
+      <div class="question-text" id="squares-question-text">__² = ?</div>
+      <div class="timer-display" id="squares-timer-display">00:00</div>
+    </div>
+    <div class="answer-row">
+      <input type="number" id="square-answer-input" placeholder="Your answer…" autocomplete="off">
+      <button class="btn btn-primary" id="square-submit-btn" onclick="submitSquareAnswer()">Check</button>
+    </div>
+    <div class="feedback-box" id="squares-feedback-box">
+      <span class="feedback-icon" id="squares-feedback-icon"></span>
+      <span id="squares-feedback-text"></span>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+      <button class="btn btn-ghost" style="font-size:0.82rem;padding:8px 14px;" onclick="stopSquaresQuiz()">Stop</button>
+      <button class="btn btn-ghost" style="font-size:0.82rem;padding:8px 14px;visibility:hidden;" onclick="nextSquareQuestion()" id="square-next-btn">Next →</button>
+    </div>
+  </div>
+
+  <!-- SQUARES FINISH -->
+  <div class="card" id="squares-finish-banner">
+    <div class="finish-emoji" id="squares-finish-emoji">🎉</div>
+    <div class="finish-title">Squares Session Complete!</div>
+    <div class="finish-sub" id="squares-finish-sub">Here's how you did:</div>
+    <div class="stats-grid">
+      <div class="stat-tile"><div class="stat-val" id="squares-stat-correct">0</div><div class="stat-lbl">Correct</div></div>
+      <div class="stat-tile"><div class="stat-val" id="squares-stat-wrong">0</div><div class="stat-lbl">Wrong</div></div>
+      <div class="stat-tile"><div class="stat-val" id="squares-stat-time">0s</div><div class="stat-lbl">Total Time</div></div>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="restartSameSquares()">Retry Squares</button>
+      <button class="btn btn-ghost" onclick="backToSquaresSetup()">New Range</button>
+    </div>
+  </div>
+
+  <!-- SQUARES HISTORY -->
+  <div id="squares-history-section">
+    <div class="section-title">
+      <span>📋 Squares History</span>
+      <button class="btn btn-ghost" style="font-size:0.8rem;padding:7px 14px;" onclick="clearSquaresHistory()">Clear</button>
+    </div>
+    <div id="squares-history-list">
+      <div class="empty-state">No square sessions yet. Start practising!</div>
+    </div>
+  </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -498,6 +622,32 @@ let sessionHistory = [];    // array of sessions
 let currentSession = null;
 let answered = false;
 
+let squareMin = 1;
+let squareMax = 20;
+let squareQuestions = [];
+let squareCurrentIdx = 0;
+let squareCorrect = 0, squareWrong = 0;
+let squareTimerInterval = null;
+let squareQuestionStartTime = 0;
+let squareHistory = [];
+let currentSquareSession = null;
+let squareAnswered = false;
+
+function switchTab(tabName) {
+  const isSquares = tabName === 'squares';
+  document.getElementById('multiplication-tab').classList.toggle('active', !isSquares);
+  document.getElementById('squares-tab').classList.toggle('active', isSquares);
+  document.getElementById('multiplication-tab-btn').classList.toggle('active', !isSquares);
+  document.getElementById('squares-tab-btn').classList.toggle('active', isSquares);
+  document.getElementById('multiplication-tab-btn').setAttribute('aria-selected', String(!isSquares));
+  document.getElementById('squares-tab-btn').setAttribute('aria-selected', String(isSquares));
+
+  setTimeout(() => {
+    const focusEl = document.getElementById(isSquares ? 'square-min-input' : 'table-input');
+    if (focusEl) focusEl.focus();
+  }, 0);
+}
+
 // ── SETUP ──
 document.getElementById('table-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') startQuiz();
@@ -509,6 +659,18 @@ document.getElementById('answer-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     if (!answered) submitAnswer();
     else nextQuestion();
+  }
+});
+document.getElementById('square-min-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startSquaresQuiz();
+});
+document.getElementById('square-max-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startSquaresQuiz();
+});
+document.getElementById('square-answer-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (!squareAnswered) submitSquareAnswer();
+    else nextSquareQuestion();
   }
 });
 
@@ -704,6 +866,239 @@ function restartSameTable() {
 function backToSetup() {
   document.getElementById('finish-banner').style.display = 'none';
   document.getElementById('setup-screen').style.display = 'block';
+}
+
+// ── SQUARES QUIZ ──
+function startSquaresQuiz() {
+  const minVal = parseInt(document.getElementById('square-min-input').value, 10);
+  const maxVal = parseInt(document.getElementById('square-max-input').value, 10);
+  if (!minVal || !maxVal || minVal < 1 || maxVal < 1 || minVal > 999 || maxVal > 999 || minVal > maxVal) {
+    document.getElementById('squares-setup-error').style.display = 'block';
+    return;
+  }
+  document.getElementById('squares-setup-error').style.display = 'none';
+  squareMin = minVal;
+  squareMax = maxVal;
+
+  squareQuestions = Array.from({length: squareMax - squareMin + 1}, (_, i) => squareMin + i);
+  for (let i = squareQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [squareQuestions[i], squareQuestions[j]] = [squareQuestions[j], squareQuestions[i]];
+  }
+
+  squareCurrentIdx = 0;
+  squareCorrect = 0;
+  squareWrong = 0;
+  currentSquareSession = { min: squareMin, max: squareMax, rows: [], date: new Date(), stoppedEarly: false };
+
+  document.getElementById('squares-setup-screen').style.display = 'none';
+  document.getElementById('squares-quiz-screen').style.display = 'block';
+  document.getElementById('squares-finish-banner').style.display = 'none';
+
+  loadSquareQuestion();
+}
+
+function loadSquareQuestion() {
+  squareAnswered = false;
+  const n = squareQuestions[squareCurrentIdx];
+  document.getElementById('squares-question-text').innerHTML = `<span>${n}</span>² = ?`;
+  document.getElementById('squares-q-counter').textContent =
+    `Question ${squareCurrentIdx + 1} / ${squareQuestions.length}`;
+  document.getElementById('squares-progress-fill').style.width =
+    `${(squareCurrentIdx / squareQuestions.length) * 100}%`;
+  document.getElementById('squares-score-badge').textContent =
+    `✓ ${squareCorrect}  ✗ ${squareWrong}`;
+  document.getElementById('square-answer-input').value = '';
+  document.getElementById('square-answer-input').disabled = false;
+  document.getElementById('square-submit-btn').disabled = false;
+  document.getElementById('square-answer-input').focus();
+
+  const fb = document.getElementById('squares-feedback-box');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('square-next-btn').style.visibility = 'hidden';
+
+  clearInterval(squareTimerInterval);
+  squareQuestionStartTime = Date.now();
+  updateSquareTimerDisplay(0);
+  squareTimerInterval = setInterval(() => {
+    updateSquareTimerDisplay((Date.now() - squareQuestionStartTime) / 1000);
+  }, 100);
+
+  const questionEl = document.getElementById('squares-question-text');
+  questionEl.classList.remove('pop');
+  void questionEl.offsetWidth;
+  questionEl.classList.add('pop');
+}
+
+function updateSquareTimerDisplay(secs) {
+  const mins = Math.floor(secs / 60);
+  const s = secs % 60;
+  const str = `${String(mins).padStart(2,'0')}:${s.toFixed(1).padStart(4,'0')}`;
+  const el = document.getElementById('squares-timer-display');
+  el.textContent = str;
+  el.className = 'timer-display' + (secs > 30 ? ' warning' : '');
+}
+
+function submitSquareAnswer() {
+  if (squareAnswered) return;
+  clearInterval(squareTimerInterval);
+  squareAnswered = true;
+
+  const raw = document.getElementById('square-answer-input').value.trim();
+  const userAns = parseInt(raw);
+  const n = squareQuestions[squareCurrentIdx];
+  const correctAns = n * n;
+  const elapsed = (Date.now() - squareQuestionStartTime) / 1000;
+  const isCorrect = userAns === correctAns;
+
+  if (isCorrect) squareCorrect++; else squareWrong++;
+
+  currentSquareSession.rows.push({
+    q: `${n}²`,
+    userAns: isNaN(userAns) ? '(blank)' : userAns,
+    correct: correctAns,
+    isCorrect,
+    time: elapsed
+  });
+
+  const fb = document.getElementById('squares-feedback-box');
+  fb.style.display = 'flex';
+  if (isCorrect) {
+    fb.className = 'feedback-box correct pop';
+    document.getElementById('squares-feedback-icon').textContent = '✓';
+    document.getElementById('squares-feedback-text').textContent = `Correct! ${n}² = ${correctAns}`;
+  } else {
+    fb.className = 'feedback-box wrong pop';
+    document.getElementById('squares-feedback-icon').textContent = '✗';
+    document.getElementById('squares-feedback-text').textContent =
+      `Not quite. ${n}² = ${correctAns} (you said ${isNaN(userAns) ? '(nothing)' : userAns})`;
+  }
+
+  document.getElementById('squares-score-badge').textContent = `✓ ${squareCorrect}  ✗ ${squareWrong}`;
+  document.getElementById('square-answer-input').disabled = true;
+  document.getElementById('square-submit-btn').disabled = true;
+
+  const nextBtn = document.getElementById('square-next-btn');
+  nextBtn.style.visibility = 'visible';
+  nextBtn.textContent = squareCurrentIdx < squareQuestions.length - 1 ? 'Next →' : 'Finish ✓';
+}
+
+function nextSquareQuestion() {
+  if (!squareAnswered) return;
+  squareCurrentIdx++;
+  if (squareCurrentIdx < squareQuestions.length) {
+    loadSquareQuestion();
+  } else {
+    finishSquaresSession(false);
+  }
+}
+
+function stopSquaresQuiz() {
+  if (!currentSquareSession) return;
+  finishSquaresSession(true);
+}
+
+function finishSquaresSession(stoppedEarly) {
+  clearInterval(squareTimerInterval);
+  document.getElementById('squares-quiz-screen').style.display = 'none';
+  currentSquareSession.stoppedEarly = stoppedEarly;
+
+  const totalTime = currentSquareSession.rows.reduce((s, r) => s + r.time, 0);
+  currentSquareSession.totalTime = totalTime;
+  currentSquareSession.correct = squareCorrect;
+  currentSquareSession.wrong = squareWrong;
+  currentSquareSession.asked = currentSquareSession.rows.length;
+  squareHistory.unshift(currentSquareSession);
+
+  document.getElementById('squares-stat-correct').textContent = squareCorrect;
+  document.getElementById('squares-stat-wrong').textContent = squareWrong;
+  document.getElementById('squares-stat-time').textContent = totalTime.toFixed(1) + 's';
+  document.getElementById('squares-finish-emoji').textContent =
+    squareCorrect === currentSquareSession.asked && currentSquareSession.asked > 0 ? '🏆' :
+    squareCorrect >= Math.ceil(Math.max(currentSquareSession.asked, 1) * 0.85) ? '🎉' :
+    squareCorrect >= Math.ceil(Math.max(currentSquareSession.asked, 1) * 0.5) ? '😊' : '💪';
+  const rangeLabel = squareMin === squareMax ? `${squareMax}` : `${squareMin} to ${squareMax}`;
+  document.getElementById('squares-finish-sub').textContent =
+    stoppedEarly ? `Stopped after ${currentSquareSession.asked} of ${squareQuestions.length} questions from ${rangeLabel}.` :
+    squareCorrect === squareQuestions.length ? 'Perfect score! Incredible!' :
+    squareCorrect >= Math.ceil(squareQuestions.length * 0.85) ? 'Great job! Keep it up!' :
+    'Keep practising — you\'ll get there!';
+  document.getElementById('squares-progress-fill').style.width = '100%';
+
+  const banner = document.getElementById('squares-finish-banner');
+  banner.style.display = 'block';
+  banner.classList.remove('pop');
+  void banner.offsetWidth;
+  banner.classList.add('pop');
+
+  renderSquaresHistory();
+}
+
+function restartSameSquares() {
+  document.getElementById('squares-finish-banner').style.display = 'none';
+  document.getElementById('square-min-input').value = squareMin;
+  document.getElementById('square-max-input').value = squareMax;
+  startSquaresQuiz();
+}
+
+function backToSquaresSetup() {
+  document.getElementById('squares-finish-banner').style.display = 'none';
+  document.getElementById('squares-setup-screen').style.display = 'block';
+}
+
+function renderSquaresHistory() {
+  const container = document.getElementById('squares-history-list');
+  if (squareHistory.length === 0) {
+    container.innerHTML = '<div class="empty-state">No square sessions yet. Start practising!</div>';
+    return;
+  }
+  container.innerHTML = '';
+  squareHistory.forEach((sess, si) => {
+    const dateStr = sess.date.toLocaleString();
+    const block = document.createElement('div');
+    block.className = 'session-block';
+    const pct = sess.rows.length ? Math.round((sess.correct / sess.rows.length) * 100) : 0;
+    const range = sess.min === sess.max ? `${sess.max}` : `${sess.min} to ${sess.max}`;
+    const totalInRange = sess.max - sess.min + 1;
+    const status = sess.stoppedEarly ? `Stopped at ${sess.asked}/${totalInRange} from ${range}` : range;
+    block.innerHTML = `
+      <div class="session-header" onclick="toggleSquareSession(${si}, this)">
+        <div>
+          <div class="session-title">Squares ${status} &nbsp;·&nbsp; ${pct}%</div>
+          <div class="session-stats">${dateStr} &nbsp;·&nbsp; ${sess.totalTime.toFixed(1)}s total</div>
+        </div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="session-rows" id="square-sess-rows-${si}">
+        ${sess.rows.map(r => `
+          <div class="hist-row">
+            <span class="hist-q">${r.q}</span>
+            <span class="hist-answer ${r.isCorrect ? 'hist-correct' : 'hist-wrong'}">
+              ${r.isCorrect ? '✓' : '✗'} ${r.userAns}
+              ${!r.isCorrect ? `<span style="color:var(--muted);font-size:0.8rem"> → ${r.correct}</span>` : ''}
+            </span>
+            <span class="hist-time">${r.time.toFixed(1)}s</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(block);
+  });
+}
+
+function toggleSquareSession(idx, headerEl) {
+  const rows = document.getElementById(`square-sess-rows-${idx}`);
+  rows.classList.toggle('open');
+  headerEl.classList.toggle('open');
+}
+
+function clearSquaresHistory() {
+  if (!squareHistory.length) return;
+  if (confirm('Clear all squares session history?')) {
+    squareHistory = [];
+    renderSquaresHistory();
+  }
 }
 
 // ── HISTORY ──
